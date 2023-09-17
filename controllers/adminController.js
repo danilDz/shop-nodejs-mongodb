@@ -1,10 +1,12 @@
 import Product from "../models/product.js";
 
 export const getAddProduct = (req, res, next) => {
+        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
         res.render("admin/edit-product", {
             docTitle: "Add product",
             path: "/admin/add-product",
             editing: false,
+            isAuthenticated: isLoggedIn,
         });
     },
     postAddProduct = (req, res, next) => {
@@ -23,6 +25,7 @@ export const getAddProduct = (req, res, next) => {
             .catch((err) => console.log(err));
     },
     getEditProduct = (req, res, next) => {
+        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
         const editMode = req.query.edit,
             prodId = req.params.productId;
         if (!editMode) return res.redirect("/");
@@ -34,6 +37,7 @@ export const getAddProduct = (req, res, next) => {
                     path: "/admin/edit-product",
                     editing: editMode,
                     product: product,
+                    isAuthenticated: isLoggedIn,
                 });
             })
             .catch((err) => console.log(err));
@@ -53,12 +57,14 @@ export const getAddProduct = (req, res, next) => {
             .catch((err) => console.log(err));
     },
     getProducts = (req, res, next) => {
+        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
         Product.find()
             .then((products) => {
                 res.render("admin/products", {
                     prods: products,
                     docTitle: "Admin products",
                     path: "/admin/products",
+                    isAuthenticated: isLoggedIn,
                 });
             })
             .catch((err) => console.log(err));

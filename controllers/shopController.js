@@ -2,40 +2,47 @@ import Product from "../models/product.js";
 import Order from "../models/order.js";
 
 export const getProducts = (req, res, next) => {
+        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
         Product.find()
             .then((products) => {
                 res.render("shop/product-list", {
                     prods: products,
                     docTitle: "All products",
                     path: "/products",
+                    isAuthenticated: isLoggedIn,
                 });
             })
             .catch((err) => console.log(err));
     },
     getProduct = (req, res, next) => {
         const productId = req.params.productId;
+        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
         Product.findById(productId)
             .then((product) => {
                 res.render("shop/product-detail", {
                     product: product,
                     docTitle: "Product detail",
                     path: "/products",
+                    isAuthenticated: isLoggedIn,
                 });
             })
             .catch((err) => console.log(err));
     },
     getIndex = (req, res, next) => {
+        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
         Product.find()
             .then((products) => {
                 res.render("shop/index", {
                     prods: products,
                     docTitle: "Shop",
                     path: "/",
+                    isAuthenticated: isLoggedIn,
                 });
             })
             .catch((err) => console.log(err));
     },
     getCart = (req, res, next) => {
+        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
         req.user
             .populate("cart.items.productId")
             .then((user) => {
@@ -44,6 +51,7 @@ export const getProducts = (req, res, next) => {
                     path: "/cart",
                     docTitle: "Cart",
                     products: products,
+                    isAuthenticated: isLoggedIn,
                 });
             })
             .catch((err) => console.log(err));
@@ -70,12 +78,14 @@ export const getProducts = (req, res, next) => {
             .catch((err) => console.log(err));
     },
     getOrders = (req, res, next) => {
+        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
         Order.find({ "user.userId": req.user._id })
             .then((orders) => {
                 res.render("shop/orders", {
                     path: "/orders",
                     docTitle: "Orders",
                     orders: orders,
+                    isAuthenticated: isLoggedIn,
                 });
             })
             .catch((err) => console.log(err));
