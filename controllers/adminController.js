@@ -1,7 +1,7 @@
 import Product from "../models/product.js";
 
 export const getAddProduct = (req, res, next) => {
-        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
+        const isLoggedIn = req.session.isLoggedIn;
         res.render("admin/edit-product", {
             docTitle: "Add product",
             path: "/admin/add-product",
@@ -25,7 +25,7 @@ export const getAddProduct = (req, res, next) => {
             .catch((err) => console.log(err));
     },
     getEditProduct = (req, res, next) => {
-        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
+        const isLoggedIn = req.session.isLoggedIn;
         const editMode = req.query.edit,
             prodId = req.params.productId;
         if (!editMode) return res.redirect("/");
@@ -57,7 +57,7 @@ export const getAddProduct = (req, res, next) => {
             .catch((err) => console.log(err));
     },
     getProducts = (req, res, next) => {
-        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
+        const isLoggedIn = req.session.isLoggedIn;
         Product.find()
             .then((products) => {
                 res.render("admin/products", {

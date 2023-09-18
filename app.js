@@ -1,9 +1,12 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
+import session from "express-session";
+import mongoDbSession from "connect-mongodb-session";
+
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -19,14 +22,28 @@ const __filename = fileURLToPath(import.meta.url),
 
 const app = express();
 
+const MongoDBStore = mongoDbSession(session);
+const store = new MongoDBStore({
+    uri: process.env.CONNECTION_URI,
+    collection: "sessions",
+});
+
 app.set("view engine", "ejs");
 app.set("views", "views");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
-
+app.use(
+    session({
+        secret: "test secret",
+        resave: false,
+        saveUninitialized: false,
+        store: store,
+    })
+);
 app.use((req, res, next) => {
-    User.findById("65035a8a36761ad3abe8add4")
+    if (!req.session.user) return next();
+    User.findById(req.session.user._id)
         .then((user) => {
             req.user = user;
             next();

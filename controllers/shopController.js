@@ -2,7 +2,7 @@ import Product from "../models/product.js";
 import Order from "../models/order.js";
 
 export const getProducts = (req, res, next) => {
-        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
+        const isLoggedIn = req.session.isLoggedIn;
         Product.find()
             .then((products) => {
                 res.render("shop/product-list", {
@@ -16,7 +16,7 @@ export const getProducts = (req, res, next) => {
     },
     getProduct = (req, res, next) => {
         const productId = req.params.productId;
-        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
+        const isLoggedIn = req.session.isLoggedIn;
         Product.findById(productId)
             .then((product) => {
                 res.render("shop/product-detail", {
@@ -29,7 +29,7 @@ export const getProducts = (req, res, next) => {
             .catch((err) => console.log(err));
     },
     getIndex = (req, res, next) => {
-        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
+        const isLoggedIn = req.session.isLoggedIn;
         Product.find()
             .then((products) => {
                 res.render("shop/index", {
@@ -42,7 +42,7 @@ export const getProducts = (req, res, next) => {
             .catch((err) => console.log(err));
     },
     getCart = (req, res, next) => {
-        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
+        const isLoggedIn = req.session.isLoggedIn;
         req.user
             .populate("cart.items.productId")
             .then((user) => {
@@ -78,7 +78,7 @@ export const getProducts = (req, res, next) => {
             .catch((err) => console.log(err));
     },
     getOrders = (req, res, next) => {
-        const isLoggedIn = req.get("Cookie").split(";")[0].trim().split("=")[1];
+        const isLoggedIn = req.session.isLoggedIn;
         Order.find({ "user.userId": req.user._id })
             .then((orders) => {
                 res.render("shop/orders", {
