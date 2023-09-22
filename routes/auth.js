@@ -1,13 +1,23 @@
 import express from "express";
 
-import { getLoginPage, postLogin, postLogout } from "../controllers/authController.js";
+import {
+    getLogin,
+    postLogin,
+    postLogout,
+    getSignup,
+    postSignup,
+} from "../controllers/authController.js";
 
 const router = express.Router();
 
-router.get('/login', getLoginPage);
+router.get("/login", getLogin);
 
-router.post('/login', postLogin);
+router.post("/login", postLogin);
 
-router.post('/logout', postLogout);
+router.get("/signup", getSignup);
+
+router.post("/signup", postSignup);
+
+router.post("/logout", postLogout);
 
 export default router;
