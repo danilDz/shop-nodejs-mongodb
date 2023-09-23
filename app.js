@@ -6,6 +6,8 @@ import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import session from "express-session";
 import mongoDbSession from "connect-mongodb-session";
+import csurf from "csurf";
+import flash from "connect-flash";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -27,6 +29,7 @@ const store = new MongoDBStore({
     uri: process.env.CONNECTION_URI,
     collection: "sessions",
 });
+const csrfProtection = csurf();
 
 app.set("view engine", "ejs");
 app.set("views", "views");
@@ -41,6 +44,9 @@ app.use(
         store: store,
     })
 );
+app.use(csrfProtection);
+app.use(flash());
+
 app.use((req, res, next) => {
     if (!req.session.user) return next();
     User.findById(req.session.user._id)
@@ -49,6 +55,12 @@ app.use((req, res, next) => {
             next();
         })
         .catch((err) => console.log(err));
+});
+
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
 });
 
 app.use("/admin", adminRoutes);
