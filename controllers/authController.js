@@ -1,12 +1,23 @@
-import User from "../models/user.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 import bcrypt from "bcryptjs";
+import nodemailer from "nodemailer";
+import brevoTransport from "nodemailer-brevo-transport";
+
+import User from "../models/user.js";
+
+const transporter = nodemailer.createTransport(
+    new brevoTransport({
+        apiKey: process.env.BREVO_API_KEY,
+    })
+);
 
 export const getLogin = (req, res, next) => {
         res.render("auth/login", {
             path: "/login",
             docTitle: "Login",
-            errorMessage: req.flash('error')
+            errorMessage: req.flash("error"),
         });
     },
     postLogin = (req, res, next) => {
@@ -15,7 +26,7 @@ export const getLogin = (req, res, next) => {
         User.findOne({ email: email })
             .then((user) => {
                 if (!user) {
-                    req.flash('error', 'Invalid email!');
+                    req.flash("error", "Invalid email!");
                     return res.redirect("/login");
                 }
                 bcrypt
@@ -28,7 +39,7 @@ export const getLogin = (req, res, next) => {
                                 res.redirect("/");
                             });
                         }
-                        req.flash('error', 'Invalid password!');
+                        req.flash("error", "Invalid password!");
                         res.redirect("/login");
                     })
                     .catch((err) => {
@@ -48,7 +59,7 @@ export const getLogin = (req, res, next) => {
         res.render("auth/signup", {
             path: "/signup",
             docTitle: "Signup",
-            errorMessage: req.flash('error')
+            errorMessage: req.flash("error"),
         });
     },
     postSignup = (req, res, next) => {
@@ -58,9 +69,12 @@ export const getLogin = (req, res, next) => {
         User.findOne({ email: email })
             .then((user) => {
                 if (user) {
-                    req.flash('error', 'This email exists. Please, enter a different one.')
+                    req.flash(
+                        "error",
+                        "This email exists. Please, enter a different one."
+                    );
                     return res.redirect("/signup");
-                } 
+                }
                 return bcrypt
                     .hash(password, 12)
                     .then((hashedPassword) => {
@@ -72,8 +86,17 @@ export const getLogin = (req, res, next) => {
                         return user.save();
                     })
                     .then((result) => {
+                        return transporter.sendMail({
+                            to: email,
+                            from: "shop@test.com",
+                            subject: "Signup succeeded",
+                            html: "<h1>You successfully signed up!</h1>",
+                        });
+                    })
+                    .then((result) => {
                         res.redirect("/login");
-                    });
+                    })
+                    .catch((err) => console.log(err));
             })
             .catch((err) => console.log(err));
     };
