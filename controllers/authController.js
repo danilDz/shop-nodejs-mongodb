@@ -3,6 +3,7 @@ dotenv.config();
 
 import crypto from "crypto";
 
+import { validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import brevoTransport from "nodemailer-brevo-transport";
@@ -25,6 +26,17 @@ export const getLogin = (req, res, next) => {
     postLogin = (req, res, next) => {
         const email = req.body.email,
             password = req.body.password;
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            console.log(errors.array());
+            return res.render("auth/login", {
+                path: "/login",
+                docTitle: "Login",
+                errorMessage: errors.array()[0].msg,
+            });
+        }
+
         User.findOne({ email: email })
             .then((user) => {
                 if (!user) {
@@ -66,39 +78,34 @@ export const getLogin = (req, res, next) => {
     },
     postSignup = (req, res, next) => {
         const email = req.body.email,
-            password = req.body.password,
-            confirmPassword = req.body.confirmPassword;
-        User.findOne({ email: email })
-            .then((user) => {
-                if (user) {
-                    req.flash(
-                        "error",
-                        "This email exists. Please, enter a different one."
-                    );
-                    return res.redirect("/signup");
-                }
-                return bcrypt
-                    .hash(password, 12)
-                    .then((hashedPassword) => {
-                        const user = new User({
-                            email: email,
-                            password: hashedPassword,
-                            cart: { items: [] },
-                        });
-                        return user.save();
-                    })
-                    .then((result) => {
-                        return transporter.sendMail({
-                            to: email,
-                            from: "shop@test.com",
-                            subject: "Signup succeeded",
-                            html: "<h1>You successfully signed up!</h1>",
-                        });
-                    })
-                    .then((result) => {
-                        res.redirect("/login");
-                    })
-                    .catch((err) => console.log(err));
+            password = req.body.password;
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            console.log(errors.array());
+            return res.status(422).render("auth/signup", {
+                path: "/signup",
+                docTitle: "Signup",
+                errorMessage: errors.array()[0].msg,
+            });
+        }
+        bcrypt
+            .hash(password, 12)
+            .then((hashedPassword) => {
+                const user = new User({
+                    email: email,
+                    password: hashedPassword,
+                    cart: { items: [] },
+                });
+                return user.save();
+            })
+            .then((result) => {
+                res.redirect("/login");
+                return transporter.sendMail({
+                    to: email,
+                    from: "shop@test.com",
+                    subject: "Signup succeeded",
+                    html: "<h1>You successfully signed up!</h1>",
+                });
             })
             .catch((err) => console.log(err));
     },
