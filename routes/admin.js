@@ -1,4 +1,5 @@
 import express from "express";
+import { body } from "express-validator";
 
 import {
     getAddProduct,
@@ -15,11 +16,47 @@ const router = express.Router();
 
 router.get("/add-product", isAuth, getAddProduct);
 
-router.post("/add-product", isAuth, postAddProduct);
+router.post(
+    "/add-product",
+    [
+        body("title")
+            .isLength({ min: 5 })
+            .withMessage("Title must be at least 5 characters!")
+            .trim(),
+        body("imageURL").isURL().withMessage("Invalid image URL!"),
+        body("price")
+            .isFloat({ min: 0.01 })
+            .withMessage("Price must be greater than 0!"),
+        body("description")
+            .isLength({ min: 10 })
+            .withMessage("Description must be at least 10 characters!")
+            .trim(),
+    ],
+    isAuth,
+    postAddProduct
+);
 
 router.get("/edit-product/:productId", isAuth, getEditProduct);
 
-router.post("/edit-product", isAuth, postEditProduct);
+router.post(
+    "/edit-product",
+    [
+        body("title")
+            .isLength({ min: 5 })
+            .withMessage("Title must be at least 5 characters!")
+            .trim(),
+        body("imageURL").isURL().withMessage("Invalid image URL!"),
+        body("price")
+            .isFloat({ min: 0.01 })
+            .withMessage("Price must be greater than 0!"),
+        body("description")
+            .isLength({ min: 10 })
+            .withMessage("Description must be at least 10 characters!")
+            .trim(),
+    ],
+    isAuth,
+    postEditProduct
+);
 
 router.post("/delete-product", isAuth, deleteProduct);
 
