@@ -75,7 +75,11 @@ export const getLogin = (req, res, next) => {
                         res.redirect("/login");
                     });
             })
-            .catch((err) => console.log(err));
+            .catch((err) => {
+                const error = new Error(err);
+                error.httpStatusCode = 500;
+                return next(error);
+            });
     },
     postLogout = (req, res, next) => {
         req.session.destroy((err) => {
@@ -129,7 +133,11 @@ export const getLogin = (req, res, next) => {
                     html: "<h1>You successfully signed up!</h1>",
                 });
             })
-            .catch((err) => console.log(err));
+            .catch((err) => {
+                const error = new Error(err);
+                error.httpStatusCode = 500;
+                return next(error);
+            });
     },
     getReset = (req, res, next) => {
         res.render("auth/reset", {
@@ -167,7 +175,11 @@ export const getLogin = (req, res, next) => {
                         `,
                     });
                 })
-                .catch((err) => console.log(err));
+                .catch((err) => {
+                    const error = new Error(err);
+                    error.httpStatusCode = 500;
+                    return next(error);
+                });
         });
     },
     getNewPassword = (req, res, next) => {
@@ -186,7 +198,11 @@ export const getLogin = (req, res, next) => {
                     passwordToken: token,
                 });
             })
-            .catch((err) => console.log(err));
+            .catch((err) => {
+                const error = new Error(err);
+                error.httpStatusCode = 500;
+                return next(error);
+            });
     },
     postNewPassword = (req, res, next) => {
         const password = req.body.password,
@@ -217,5 +233,9 @@ export const getLogin = (req, res, next) => {
             .then((result) => {
                 res.redirect("/login");
             })
-            .catch((err) => console.log(err));
+            .catch((err) => {
+                const error = new Error(err);
+                error.httpStatusCode = 500;
+                return next(error);
+            });
     };

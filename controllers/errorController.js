@@ -4,3 +4,10 @@ export const pageNotFound = (req, res, next) => {
         path: "/404",
     });
 };
+
+export const get500 = (req, res, next) => {
+    res.status(500).render("500", {
+        docTitle: "Error!",
+        path: "/500",
+    });
+};
