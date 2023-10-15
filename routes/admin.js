@@ -23,7 +23,6 @@ router.post(
             .isLength({ min: 5 })
             .withMessage("Title must be at least 5 characters!")
             .trim(),
-        body("imageURL").isURL().withMessage("Invalid image URL!"),
         body("price")
             .isFloat({ min: 0.01 })
             .withMessage("Price must be greater than 0!"),
@@ -45,7 +44,6 @@ router.post(
             .isLength({ min: 5 })
             .withMessage("Title must be at least 5 characters!")
             .trim(),
-        body("imageURL").isURL().withMessage("Invalid image URL!"),
         body("price")
             .isFloat({ min: 0.01 })
             .withMessage("Price must be greater than 0!"),
