@@ -6,13 +6,30 @@ import PDFDocument from "pdfkit";
 import Product from "../models/product.js";
 import Order from "../models/order.js";
 
+const ITEMS_PER_PAGE = 2;
+
 export const getProducts = (req, res, next) => {
+        const page = +req.query.page || 1;
+        let numberOfProducts;
         Product.find()
+            .countDocuments()
+            .then((numProducts) => {
+                numberOfProducts = numProducts;
+                return Product.find()
+                    .skip((page - 1) * ITEMS_PER_PAGE)
+                    .limit(ITEMS_PER_PAGE);
+            })
             .then((products) => {
                 res.render("shop/product-list", {
                     prods: products,
                     docTitle: "All products",
                     path: "/products",
+                    currentPage: page,
+                    hasNextPage: ITEMS_PER_PAGE * page < numberOfProducts,
+                    hasPreviousPage: page > 1,
+                    nextPage: page + 1,
+                    previousPage: page - 1,
+                    lastPage: Math.ceil(numberOfProducts / ITEMS_PER_PAGE),
                 });
             })
             .catch((err) => {
@@ -38,12 +55,27 @@ export const getProducts = (req, res, next) => {
             });
     },
     getIndex = (req, res, next) => {
+        const page = +req.query.page || 1;
+        let numberOfProducts;
         Product.find()
+            .countDocuments()
+            .then((numProducts) => {
+                numberOfProducts = numProducts;
+                return Product.find()
+                    .skip((page - 1) * ITEMS_PER_PAGE)
+                    .limit(ITEMS_PER_PAGE);
+            })
             .then((products) => {
                 res.render("shop/index", {
                     prods: products,
                     docTitle: "Shop",
                     path: "/",
+                    currentPage: page,
+                    hasNextPage: ITEMS_PER_PAGE * page < numberOfProducts,
+                    hasPreviousPage: page > 1,
+                    nextPage: page + 1,
+                    previousPage: page - 1,
+                    lastPage: Math.ceil(numberOfProducts / ITEMS_PER_PAGE),
                 });
             })
             .catch((err) => {
@@ -152,10 +184,10 @@ export const getProducts = (req, res, next) => {
                 if (!order) return next(new Error("No order is found!"));
                 if (order.user.userId.toString() !== req.user._id.toString())
                     return next(new Error("Unauthorized!"));
-                
+
                 const invoiceName = `invoice-${orderId}.pdf`,
                     invoicePath = path.join("data", "invoices", invoiceName);
-                
+
                 res.setHeader("Content-Type", "application/pdf");
                 res.setHeader(
                     "Content-Disposition",
@@ -166,21 +198,23 @@ export const getProducts = (req, res, next) => {
 
                 pdfDoc.pipe(fs.createWriteStream(invoicePath));
                 pdfDoc.pipe(res);
-                
+
                 pdfDoc.fontSize(26).text("Invoice");
                 pdfDoc.text("------------------------");
                 let totalPrice = 0;
                 order.items.forEach((prod) => {
                     totalPrice += prod.quantity * prod.product.price;
-                    pdfDoc.fontSize(14).text(
-                        `${prod.product.title} - ${prod.quantity} x $${prod.product.price}`
+                    pdfDoc
+                        .fontSize(14)
+                        .text(
+                            `${prod.product.title} - ${prod.quantity} x $${prod.product.price}`
                         );
                 });
                 pdfDoc.fontSize(26).text("------------------------");
                 pdfDoc.fontSize(20).text(`Total price: $${totalPrice}`);
-                
+
                 pdfDoc.end();
-                
+
                 // fs.readFile(invoicePath, (err, data) => {
                 //     if (err) {
                 //         return next(err);
