@@ -10,6 +10,7 @@ import {
     cartDeleteItem,
     postOrder,
     getInvoice,
+    getCheckout
 } from "../controllers/shopController.js";
 
 import isAuth from "../middleware/is-auth.js";
@@ -30,8 +31,12 @@ router.get("/products/:productId", getProduct);
 
 router.get("/orders", isAuth, getOrders);
 
-router.post("/create-order", isAuth, postOrder);
-
 router.get("/orders/:orderId", isAuth, getInvoice);
+
+router.get("/checkout", isAuth, getCheckout);
+
+router.get("/checkout/success", isAuth, postOrder);
+
+router.get("/checkout/cancel", isAuth, getCheckout);
 
 export default router;

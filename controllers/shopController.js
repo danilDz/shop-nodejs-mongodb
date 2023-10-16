@@ -1,7 +1,12 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import fs from "fs";
 import path from "path";
 
 import PDFDocument from "pdfkit";
+import Stripe from "stripe";
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 import Product from "../models/product.js";
 import Order from "../models/order.js";
@@ -214,28 +219,58 @@ export const getProducts = (req, res, next) => {
                 pdfDoc.fontSize(20).text(`Total price: $${totalPrice}`);
 
                 pdfDoc.end();
-
-                // fs.readFile(invoicePath, (err, data) => {
-                //     if (err) {
-                //         return next(err);
-                //     }
-                //     res.setHeader("Content-Type", "application/pdf");
-                //     res.setHeader(
-                //         "Content-Disposition",
-                //         `attachment; filename="${invoiceName}"`
-                //     );
-                //     res.send(data);
-                // });
-
-                // const file = fs.createReadStream(invoicePath);
-                // res.setHeader("Content-Type", "application/pdf");
-                // res.setHeader(
-                //     "Content-Disposition",
-                //     `attachment; filename="${invoiceName}"`
-                // );
-                // file.pipe(res);
             })
             .catch((err) => {
                 next(err);
+            });
+    },
+    getCheckout = (req, res, next) => {
+        let products;
+        let totalPrice = 0;
+        req.user
+            .populate("cart.items.productId")
+            .then((user) => {
+                products = user.cart.items;
+                products.forEach((prod) => {
+                    totalPrice += prod.quantity * prod.productId.price;
+                });
+
+                return stripe.checkout.sessions.create({
+                    payment_method_types: ["card"],
+                    line_items: products.map((prod) => {
+                        return {
+                            price_data: {
+                                unit_amount: prod.productId.price * 100,
+                                currency: "usd",
+                                product_data: {
+                                    name: prod.productId.title,
+                                    description: prod.productId.description,
+                                },
+                            },
+                            quantity: prod.quantity,
+                        };
+                    }),
+                    mode: 'payment',
+                    success_url: `${req.protocol}://${req.get(
+                        "host"
+                    )}/checkout/success`,
+                    cancel_url: `${req.protocol}://${req.get(
+                        "host"
+                    )}/checkout/cancel`,
+                });
+            })
+            .then((session) => {
+                res.render("shop/checkout", {
+                    docTitle: "Checkout",
+                    path: "/checkout",
+                    products,
+                    totalPrice,
+                    sessionId: session.id,
+                });
+            })
+            .catch((err) => {
+                const error = new Error(err);
+                error.httpStatusCode = 500;
+                return next(error);
             });
     };
