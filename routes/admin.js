@@ -56,7 +56,7 @@ router.post(
     postEditProduct
 );
 
-router.post("/delete-product", isAuth, deleteProduct);
+router.delete("/product/:productId", isAuth, deleteProduct);
 
 router.get("/products", isAuth, getProducts);
 
