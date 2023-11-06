@@ -9,6 +9,9 @@ import session from "express-session";
 import mongoDbSession from "connect-mongodb-session";
 import csurf from "csurf";
 import flash from "connect-flash";
+import helmet from "helmet";
+import compression from "compression";
+import morgan from "morgan";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -19,6 +22,7 @@ import authRoutes from "./routes/auth.js";
 import { get500, pageNotFound } from "./controllers/errorController.js";
 
 import User from "./models/user.js";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url),
     __dirname = path.dirname(__filename);
@@ -55,6 +59,15 @@ const fileFilter = (req, file, cb) => {
 
 app.set("view engine", "ejs");
 app.set("views", "views");
+
+const accessLogStream = fs.createWriteStream(
+    path.join(__dirname, "access.log"),
+    { flags: "a" }
+);
+
+app.use(helmet());
+app.use(compression());
+app.use(morgan("combined", { stream: accessLogStream }));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(
@@ -113,6 +126,6 @@ app.use((error, req, res, next) => {
 mongoose
     .connect(process.env.CONNECTION_URI)
     .then((result) => {
-        app.listen(3000);
+        app.listen(process.env.PORT || 3000);
     })
     .catch((err) => console.log(err));
