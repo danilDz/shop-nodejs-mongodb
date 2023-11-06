@@ -3,3 +3,5 @@ package-lock.json
 .DS_Store
 .prettierrc
 .env
+server.cert
+server.key
